@@ -1,0 +1,28 @@
+# 密钥和本地环境
+.env
+.env.*
+*.key
+*.pem
+*.p12
+
+# 首次提交前，在这里添加项目特定的密钥路径。
+# 示例：
+# MEMORY/01-rules/local-credentials.md
+
+# 临时和生成内容
+90-temp/*
+!90-temp/README.md
+!90-temp/inbox/
+!90-temp/inbox/README.md
+__pycache__/
+*.py[cod]
+.pytest_cache/
+node_modules/
+dist/
+build/
+
+# 操作系统和编辑器噪声
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

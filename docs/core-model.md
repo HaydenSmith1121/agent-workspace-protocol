@@ -29,6 +29,11 @@ Every workspace should let a new agent answer four questions before it edits:
 
 If any answer is unclear, the workspace is not yet agent-ready.
 
+The installer cannot watch the filesystem after bootstrap. Reliable placement
+depends on an agent reading the entry map and canonical protocol, then
+classifying new durable content before writing it. See
+[rule-intake.md](rule-intake.md).
+
 ## The Six Invariants
 
 ### 1. One Canonical Source

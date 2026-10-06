@@ -65,6 +65,10 @@ python skill/agent-workspace-protocol/scripts/install.py \
 # Project-local skill
 python skill/agent-workspace-protocol/scripts/install.py \
   --scope project --workspace .
+
+# Bootstrap a Simplified Chinese workspace
+python skill/agent-workspace-protocol/scripts/install.py \
+  --workspace . --language zh-CN
 ```
 
 ## Recommended Default

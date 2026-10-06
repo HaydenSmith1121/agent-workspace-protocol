@@ -88,6 +88,26 @@ class BootstrapTests(unittest.TestCase):
                 "local change\n",
             )
 
+    def test_bootstrap_chinese_templates(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp) / "sample"
+            result = run_script(
+                BOOTSTRAP,
+                "--workspace",
+                str(workspace),
+                "--agents",
+                "all",
+                "--language",
+                "zh-CN",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            protocol = (
+                workspace / "MEMORY" / "01-rules" / "workspace-protocol.md"
+            ).read_text(encoding="utf-8")
+            agents = (workspace / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertIn("# 智能体工作区协议", protocol)
+            self.assertIn("本文件只是导航地图", agents)
+
 
 class InstallerTests(unittest.TestCase):
     def test_install_skill_to_explicit_root(self) -> None:
@@ -133,6 +153,29 @@ class InstallerTests(unittest.TestCase):
             self.assertTrue((workspace / "AGENTS.md").is_file())
             self.assertTrue((workspace / "CLAUDE.md").is_file())
             self.assertFalse((workspace / "GEMINI.md").exists())
+
+    def test_install_and_bootstrap_chinese(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            skill_root = Path(temp) / "skills"
+            workspace = Path(temp) / "workspace"
+            result = run_script(
+                INSTALLER,
+                "--scope",
+                "agent",
+                "--runtime",
+                "custom",
+                "--skill-root",
+                str(skill_root),
+                "--workspace",
+                str(workspace),
+                "--agents",
+                "codex",
+                "--language",
+                "zh-CN",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            readme = (workspace / "README.md").read_text(encoding="utf-8")
+            self.assertIn("本工作区遵循", readme)
 
 
 if __name__ == "__main__":

@@ -15,6 +15,13 @@ TEMPLATE_ROOT = (
     / "assets"
     / "workspace"
 )
+CHINESE_TEMPLATE_ROOT = (
+    REPO_ROOT
+    / "skill"
+    / "agent-workspace-protocol"
+    / "assets"
+    / "workspace-zh-CN"
+)
 VIRTUAL_TEMPLATE_TARGETS = {
     TEMPLATE_ROOT / "MEMORY" / "01-rules" / "workspace-protocol.md":
     REPO_ROOT
@@ -22,6 +29,12 @@ VIRTUAL_TEMPLATE_TARGETS = {
     / "agent-workspace-protocol"
     / "references"
     / "workspace-protocol.md",
+    CHINESE_TEMPLATE_ROOT / "MEMORY" / "01-rules" / "workspace-protocol.md":
+    REPO_ROOT
+    / "skill"
+    / "agent-workspace-protocol"
+    / "references"
+    / "workspace-protocol.zh-CN.md",
 }
 
 
@@ -34,6 +47,19 @@ def markdown_files() -> list[Path]:
 
 
 class DocumentationLinkTests(unittest.TestCase):
+    def test_language_template_trees_match(self) -> None:
+        english = {
+            path.relative_to(TEMPLATE_ROOT).as_posix()
+            for path in TEMPLATE_ROOT.rglob("*")
+            if path.is_file()
+        }
+        chinese = {
+            path.relative_to(CHINESE_TEMPLATE_ROOT).as_posix()
+            for path in CHINESE_TEMPLATE_ROOT.rglob("*")
+            if path.is_file()
+        }
+        self.assertEqual(english, chinese)
+
     def test_relative_markdown_links_exist(self) -> None:
         failures: list[str] = []
         for document in markdown_files():

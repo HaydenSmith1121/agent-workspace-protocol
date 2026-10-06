@@ -9,6 +9,8 @@ Before opening a pull request:
 3. Run the bootstrap script against a temporary workspace.
 4. Check for secrets and private paths.
 5. Confirm that all adapter files still point to the canonical protocol.
+6. When changing workspace templates, update both `workspace` and
+   `workspace-zh-CN`, then run the template-parity test.
 
 Do not add a new top-level directory merely to hold project-specific history.
 Add a reference, an optional template, or a documented extension instead.

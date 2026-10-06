@@ -6,6 +6,7 @@ memory store.
 ## Source Map
 
 - Public overview: `README.md`
+- Simplified Chinese overview: `README.zh-CN.md`
 - Reusable skill: `skill/agent-workspace-protocol/SKILL.md`
 - Canonical protocol reference:
   `skill/agent-workspace-protocol/references/workspace-protocol.md`
@@ -23,6 +24,7 @@ memory store.
   to it but must not fork the authority model.
 - Treat generated examples as examples, not specifications.
 - Preserve the installer's no-overwrite default.
+- Keep English and Simplified Chinese workspace templates path-compatible.
 - Run `python -m unittest discover -s tests -v`, the skill validator, and a
   secret scan before publishing.
 - Any adapter change must update the adapter matrix and installer.

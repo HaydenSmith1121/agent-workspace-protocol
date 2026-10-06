@@ -12,6 +12,17 @@ from pathlib import Path
 
 
 SUPPORTED_AGENTS = ("codex", "claude", "cursor", "gemini", "copilot")
+SUPPORTED_LANGUAGES = ("en", "zh-CN")
+LANGUAGE_LAYOUTS = {
+    "en": {
+        "assets": "workspace",
+        "canonical": "workspace-protocol.md",
+    },
+    "zh-CN": {
+        "assets": "workspace-zh-CN",
+        "canonical": "workspace-protocol.zh-CN.md",
+    },
+}
 AGENT_TEMPLATES = {
     "codex": ("AGENTS.md",),
     "claude": ("CLAUDE.md",),
@@ -102,15 +113,21 @@ def unique_backup_path(path: Path, stamp: str) -> Path:
 def build_plan(
     workspace: Path,
     agents: list[str],
+    language: str,
     force: bool,
     backup: bool,
 ) -> list[PlannedFile]:
-    asset_root = Path(__file__).resolve().parent.parent / "assets" / "workspace"
-    canonical = (
-        Path(__file__).resolve().parent.parent
-        / "references"
-        / "workspace-protocol.md"
-    )
+    try:
+        language_layout = LANGUAGE_LAYOUTS[language]
+    except KeyError as exc:
+        raise ValueError(
+            f"unsupported language: {language}; "
+            f"choose from {', '.join(SUPPORTED_LANGUAGES)}"
+        ) from exc
+
+    skill_root = Path(__file__).resolve().parent.parent
+    asset_root = skill_root / "assets" / language_layout["assets"]
+    canonical = skill_root / "references" / language_layout["canonical"]
 
     mappings: list[tuple[Path, str]] = [
         (asset_root / relative, relative) for relative in BASE_TEMPLATES
@@ -189,6 +206,7 @@ def apply_plan(plan: list[PlannedFile], dry_run: bool) -> None:
 def bootstrap(
     workspace: Path,
     agents: list[str],
+    language: str = "en",
     dry_run: bool = False,
     force: bool = False,
     backup: bool = False,
@@ -200,10 +218,17 @@ def bootstrap(
     if dry_run:
         print(f"PLAN      workspace: {workspace}")
         print(f"PLAN      agents: {', '.join(agents) if agents else 'none'}")
+        print(f"PLAN      language: {language}")
     else:
         workspace.mkdir(parents=True, exist_ok=True)
 
-    plan = build_plan(workspace, agents, force=force, backup=backup)
+    plan = build_plan(
+        workspace,
+        agents,
+        language=language,
+        force=force,
+        backup=backup,
+    )
     apply_plan(plan, dry_run=dry_run)
 
     if dry_run:
@@ -228,6 +253,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="all",
         help="Comma-separated: codex,claude,cursor,gemini,copilot,all,none.",
     )
+    parser.add_argument(
+        "--language",
+        choices=SUPPORTED_LANGUAGES,
+        default="en",
+        help="Workspace template language: en or zh-CN.",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Plan without writing.")
     parser.add_argument("--force", action="store_true", help="Overwrite conflicts.")
     parser.add_argument(
@@ -246,6 +277,7 @@ def main(argv: list[str] | None = None) -> int:
         return bootstrap(
             workspace=Path(args.workspace),
             agents=agents,
+            language=args.language,
             dry_run=args.dry_run,
             force=args.force,
             backup=args.backup,

@@ -146,6 +146,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="all",
         help="Workspace adapters: codex,claude,cursor,gemini,copilot,all,none.",
     )
+    parser.add_argument(
+        "--language",
+        choices=("en", "zh-CN"),
+        default="en",
+        help="Workspace template language: en or zh-CN.",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Plan without writing.")
     parser.add_argument("--force", action="store_true", help="Overwrite conflicts.")
     parser.add_argument(
@@ -203,6 +209,7 @@ def main(argv: list[str] | None = None) -> int:
             bootstrap(
                 workspace=workspace,
                 agents=agents,
+                language=args.language,
                 dry_run=args.dry_run,
                 force=args.force,
                 backup=args.backup,

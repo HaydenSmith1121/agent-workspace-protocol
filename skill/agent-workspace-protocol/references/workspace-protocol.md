@@ -230,7 +230,32 @@ After writing:
 
 Never silently overwrite durable content or duplicate a canonical rule.
 
-## 8. Output Promotion
+## 8. Rule Intake and Placement
+
+Installing the skill or bootstrapping a workspace does not create a background
+watcher. When an agent writes a new or changed rule during a session, classify
+it before writing.
+
+| New content | Default location | Authority | Required update |
+| --- | --- | --- | --- |
+| Durable workspace rule | `MEMORY/01-rules/<topic>.md` | Authoritative | `MEMORY/README.md` |
+| Directory, naming, or classification rule | `MEMORY/02-structure/` | Authoritative | Structure document and index |
+| Current fact or conclusion | `MEMORY/05-state/current.md` | Derived summary | Link to canonical source |
+| Durable decision and rationale | `MEMORY/06-decisions/NNNN-<topic>.md` | Authoritative | Decision index |
+| Task history | `MEMORY/03-sessions/YYYY-MM-DD-<topic>.md` | Non-authoritative | Register when useful |
+| Requirement, design, specification, or contract | `10-docs/` | Authoritative after approval | Relevant index |
+| Final report, export, or presentation | `40-deliverables/` | Derived output | Source and status |
+| Unclassified temporary material | `90-temp/inbox/` | Non-authoritative | Classify or remove |
+
+Before writing, search for an existing canonical file. If one exists, update it
+instead of creating a duplicate. After writing, update the relevant index,
+current state, and decision record when the change affects structure or
+authority. Move valuable `90-temp/inbox/` material to a durable category before
+task completion.
+
+Manual edits made outside an agent session are not moved automatically.
+
+## 9. Output Promotion
 
 To promote a generated output to an input:
 
@@ -242,7 +267,7 @@ To promote a generated output to an input:
 
 Promotion is a deliberate event, not an incidental file move.
 
-## 9. Code Map
+## 10. Code Map
 
 Each external code repository should have a row in the workspace code map:
 
@@ -260,7 +285,7 @@ Each code repository should carry its own local agent instructions, build/test
 commands, and documentation. The knowledge workspace links to it rather than
 duplicating it.
 
-## 10. Secrets and Sensitive Data
+## 11. Secrets and Sensitive Data
 
 1. Prefer a real secret manager for credentials.
 2. If local secret files are unavoidable, place them outside version control
@@ -270,7 +295,7 @@ duplicating it.
 4. Record the location and purpose of a secret reference, not the value.
 5. Rotate a credential immediately if it is committed or exposed.
 
-## 11. Naming and Links
+## 12. Naming and Links
 
 1. Use lowercase short directory names with a two-digit ordering prefix.
 2. Do not use spaces or platform-reserved characters in filenames.
@@ -279,7 +304,7 @@ duplicating it.
 5. Use relative links inside the workspace.
 6. Keep one canonical path per artifact; update the index when a path moves.
 
-## 12. Task Lifecycle
+## 13. Task Lifecycle
 
 ### Start
 
@@ -303,7 +328,7 @@ duplicating it.
 - preserve or clean temporary files intentionally;
 - report paths, verification evidence, and unverified items.
 
-## 13. Documentation Gardening
+## 14. Documentation Gardening
 
 Run periodically:
 
@@ -317,7 +342,7 @@ Run periodically:
 - temporary directories are clean;
 - no credentials appear outside the intended secret location.
 
-## 14. Changing the Protocol
+## 15. Changing the Protocol
 
 For a material change:
 
@@ -332,7 +357,7 @@ For a material change:
 If the workspace has no decision-record process, create one before making a
 large structural change.
 
-## 15. Minimum Compliance Checklist
+## 16. Minimum Compliance Checklist
 
 - [ ] One canonical source for each durable fact.
 - [ ] Authority levels are explicit.
@@ -343,7 +368,7 @@ large structural change.
 - [ ] Secrets are not in tracked files.
 - [ ] Indexes and links are current.
 
-## 16. Customization
+## 17. Customization
 
 A workspace may change directory names, numbering, metadata fields, and
 adapter choices. It may not remove the need to answer the four questions at

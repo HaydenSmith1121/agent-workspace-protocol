@@ -1,6 +1,6 @@
 ---
 name: agent-workspace-protocol
-description: Bootstrap, audit, migrate, or document a cross-agent workspace so rules, inputs, outputs, code, memory, and history are distinguishable and safe to load. Use when designing workspace organization, installing agent entry files, or improving how multiple models share a repository.
+description: Bootstrap, audit, migrate, or document a cross-agent workspace so rules, inputs, outputs, code, memory, and history are distinguishable and safe to load. Supports English and Simplified Chinese templates. Use when designing workspace organization, installing agent entry files, or improving how multiple models share a repository.
 metadata:
   short-description: "Make AI workspaces legible, safe, and reusable"
 ---
@@ -21,7 +21,9 @@ Before writing:
    `MEMORY/01-rules/workspace-protocol.md`.
 3. Inspect the top-level directories and repository status.
 4. Identify secrets, private data, generated outputs, and external code paths.
-5. Ask only if the authority model or intended scope is genuinely ambiguous.
+5. Determine whether the user's workspace language or documentation language
+   requires the English or `zh-CN` templates.
+6. Ask only if the authority model or intended scope is genuinely ambiguous.
 
 Preserve good local rules. This skill supplies a structure and decision model,
 not permission to rewrite a project's history or discard its conventions.
@@ -60,6 +62,8 @@ python scripts/bootstrap_workspace.py --workspace /path/to/workspace \
   --agents all
 ```
 
+For a Simplified Chinese workspace, add `--language zh-CN`.
+
 The script refuses conflicts by default. `--force` overwrites; add `--backup`
 to preserve conflicting files. It never writes outside the target workspace.
 
@@ -90,6 +94,25 @@ Apply these invariants:
 7. Formal content carries status, authority, source, and update metadata.
 8. Conflicts are surfaced, not silently guessed away.
 
+## Rule Intake and Placement
+
+Installing the skill does not create a filesystem watcher. When adding or
+changing a rule during an agent session:
+
+1. Search for an existing canonical file before creating a new one.
+2. Classify the content by durability, authority, and lifecycle.
+3. Put durable workspace rules in `MEMORY/01-rules/`.
+4. Put directory and classification rules in `MEMORY/02-structure/`.
+5. Put current conclusions in `MEMORY/05-state/current.md`.
+6. Put durable choices and rationale in `MEMORY/06-decisions/`.
+7. Put task history in `MEMORY/03-sessions/`.
+8. Update indexes, state, or decision records when required.
+9. Classify or remove `90-temp/inbox/` items before task completion.
+
+Do not claim that manual edits outside an agent session will be moved
+automatically. State that placement is agent-mediated and depends on the
+workspace entry file and canonical protocol being read.
+
 ## Read and Write Behavior
 
 - Read the map, then the index, then only relevant files.
@@ -119,6 +142,10 @@ Check:
 - Read [references/workspace-protocol.md](references/workspace-protocol.md)
   when defining or reviewing the protocol. This file is also the canonical
   template source; `{{DATE}}` is replaced during workspace bootstrap.
+- Read
+  [references/workspace-protocol.zh-CN.md](references/workspace-protocol.zh-CN.md)
+  when bootstrapping or reviewing a Simplified Chinese workspace. Use
+  `--language zh-CN` so this file becomes the generated canonical protocol.
 - Read [references/adapters.md](references/adapters.md) when installing or
   troubleshooting agent entry files.
 - Read [references/migration-and-audit.md](references/migration-and-audit.md)

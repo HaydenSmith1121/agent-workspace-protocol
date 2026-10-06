@@ -1,5 +1,7 @@
 # Agent Workspace Protocol
 
+English | [简体中文](README.zh-CN.md)
+
 Agent Workspace Protocol is a portable, cross-agent convention for making a
 workspace legible to humans and AI agents.
 
@@ -58,11 +60,18 @@ Install the Codex skill and bootstrap a new workspace:
 .\install.ps1 --workspace C:\path\to\workspace
 ```
 
+Create a Simplified Chinese workspace:
+
+```powershell
+.\install.ps1 --workspace C:\path\to\workspace --language zh-CN
+```
+
 On macOS or Linux:
 
 ```sh
 ./install.sh --dry-run
 ./install.sh --workspace /path/to/workspace
+./install.sh --workspace /path/to/workspace --language zh-CN
 ```
 
 The default behavior is:
@@ -80,6 +89,7 @@ Useful options:
 --skill-root PATH         Use an explicit skill root
 --workspace PATH          Workspace to bootstrap
 --agents LIST             codex,claude,cursor,gemini,copilot,all
+--language en|zh-CN       Select English or Simplified Chinese templates
 --no-skill                Bootstrap the workspace only
 --no-workspace            Install the skill only
 --dry-run                 Print actions without writing
@@ -158,6 +168,21 @@ The general form is:
 If the team intentionally keeps code and docs in one monorepo, the boundary
 still applies inside that repository: use explicit directories and entry
 files rather than relying on agents to infer intent.
+
+## Will New Rules Be Placed Automatically?
+
+Not by the filesystem alone.
+
+Installing the skill and bootstrapping a workspace do not create a background
+watcher. When an agent has loaded the workspace entry file and canonical
+protocol, it can classify a new durable rule, update the canonical file, and
+update the relevant index or state. Files created manually outside an agent
+session are not moved automatically.
+
+The protocol therefore includes a rule-intake table and requires agents to
+classify durable content before writing. See
+[docs/rule-intake.md](docs/rule-intake.md) and
+[简体中文说明](docs/zh-CN/rule-intake.md).
 
 ## Supported Agent Adapters
 
