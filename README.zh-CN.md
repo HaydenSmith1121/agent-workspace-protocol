@@ -40,6 +40,57 @@ Agent 层 skill 教智能体如何初始化、审计和维护工作区。工作�
 
 详细说明见 [安装范围](docs/zh-CN/install-scopes.md)。
 
+## 安装
+
+安装器位于仓库中，所以需要先把公开仓库下载到本机。安装需要 Python 3 和 Git。
+
+### Windows PowerShell
+
+只安装用户级 Codex skill：
+
+```powershell
+git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
+cd agent-workspace-protocol
+.\install.ps1 --no-workspace --dry-run
+.\install.ps1 --no-workspace
+```
+
+安装 Codex skill，并初始化一个工作区：
+
+```powershell
+.\install.ps1 --workspace C:\path\to\workspace --agents all --language zh-CN
+```
+
+### macOS 或 Linux
+
+```sh
+git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
+cd agent-workspace-protocol
+./install.sh --no-workspace --dry-run
+./install.sh --no-workspace
+./install.sh --workspace /path/to/workspace --agents all --language zh-CN
+```
+
+默认安装范围是 `agent`，默认运行环境是 Codex，默认模板语言是英文。默认不会覆盖
+已有文件；需要替换时必须显式使用 `--force`，建议同时使用 `--backup`。
+
+### 交给智能体安装
+
+可以直接告诉智能体从公开仓库安装，这是受支持的流程。最好同时说明运行环境、安装
+范围和是否需要初始化工作区，例如：
+
+```text
+请从下面这个公开仓库安装 agent-workspace-protocol skill：
+https://github.com/HaydenSmith1121/agent-workspace-protocol
+
+安装到用户级 Codex skill 目录。然后使用全部智能体适配器和简体中文模板，初始化
+<工作区绝对路径>。先运行 --dry-run 并展示计划，确认结果无误后再正式执行。
+```
+
+智能体应当克隆仓库，然后运行仓库内的 `install.ps1` 或 `install.sh`。这个项目不是
+已经发布到包管理器的安装包，因此不要自行编造 `npm install`、`pip install` 之类
+不存在的安装命令。
+
 ## 快速开始
 
 预览 Codex 用户级 skill 安装：

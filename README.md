@@ -46,6 +46,65 @@ memory in the global skill.
 
 For a fuller explanation, see [docs/install-scopes.md](docs/install-scopes.md).
 
+## Installation
+
+The repository must be present on the machine before its installer can run.
+Python 3 and Git are required.
+
+### Windows PowerShell
+
+Install the reusable Codex skill only:
+
+```powershell
+git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
+cd agent-workspace-protocol
+.\install.ps1 --no-workspace --dry-run
+.\install.ps1 --no-workspace
+```
+
+Install the Codex skill and initialize a workspace:
+
+```powershell
+.\install.ps1 --workspace C:\path\to\workspace --agents all --language en
+```
+
+Use `--language zh-CN` for the Simplified Chinese workspace templates.
+
+### macOS or Linux
+
+```sh
+git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
+cd agent-workspace-protocol
+./install.sh --no-workspace --dry-run
+./install.sh --no-workspace
+./install.sh --workspace /path/to/workspace --agents all --language en
+```
+
+The default installation scope is `agent`, the default runtime is Codex, and
+the default language is English. Existing files are refused unless `--force`
+is supplied. Use `--backup` when replacing an existing skill.
+
+### Let an Agent Install It
+
+Yes, telling an agent to install the repository is a supported workflow. Give
+it the public URL, the desired runtime, the installation scope, and whether it
+should initialize a workspace:
+
+```text
+Install the agent-workspace-protocol skill from this public repository:
+https://github.com/HaydenSmith1121/agent-workspace-protocol
+
+Install it as a user-level Codex skill. Then initialize the workspace at
+<ABSOLUTE_WORKSPACE_PATH> with all agent adapters and the Simplified Chinese
+templates. Run the installer with --dry-run first, show me the planned changes,
+and only continue after the dry run is valid.
+```
+
+The agent should clone the repository and run the included `install.ps1` or
+`install.sh`. It should not invent a package-manager installation command,
+because this skill is distributed as a repository rather than a published
+package.
+
 ## Quick Start
 
 Preview a user-level Codex skill installation:
