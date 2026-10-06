@@ -1,0 +1,28 @@
+# Secrets and local environment
+.env
+.env.*
+*.key
+*.pem
+*.p12
+
+# Add project-specific secret paths before the first commit.
+# Example:
+# MEMORY/01-rules/local-credentials.md
+
+# Temporary and generated
+90-temp/*
+!90-temp/README.md
+!90-temp/inbox/
+!90-temp/inbox/README.md
+__pycache__/
+*.py[cod]
+.pytest_cache/
+node_modules/
+dist/
+build/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

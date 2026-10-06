@@ -1,0 +1,28 @@
+# Secrets and local environment
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*credential*
+*secret*
+
+# Local agent state
+.agents/local/
+.claude/local/
+.codex/local/
+
+# Obvious generated artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+node_modules/
+dist/
+build/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

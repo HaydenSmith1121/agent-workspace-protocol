@@ -1,0 +1,7 @@
+interface:
+  display_name: "Agent Workspace Protocol"
+  short_description: "Make AI workspaces legible, safe, and reusable"
+  default_prompt: "Use $agent-workspace-protocol to audit or bootstrap this workspace for reliable cross-agent collaboration."
+
+policy:
+  allow_implicit_invocation: true
