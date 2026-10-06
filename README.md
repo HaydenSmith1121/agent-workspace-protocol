@@ -53,6 +53,44 @@ Python 3 and Git are required.
 
 ### Windows PowerShell
 
+Install the reusable Codex skill with one command:
+
+```powershell
+irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1 | iex
+```
+
+The script downloads the repository to a temporary directory and installs the
+skill into the user-level Codex skill directory. It does not initialize any
+workspace.
+
+Install the skill and initialize a workspace in one command:
+
+```powershell
+$s=irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1; & ([scriptblock]::Create($s)) --workspace "C:\path\to\workspace" --agents all --language zh-CN
+```
+
+This is one installation workflow with two targets:
+
+- the reusable skill is installed at the agent level;
+- the selected workspace receives `AGENTS.md`, adapters, and `MEMORY/`.
+
+It does not create a Git repository or publish anything.
+
+### Codex Plugin Marketplace
+
+Codex can also install the reusable skill through its plugin system:
+
+```powershell
+codex plugin marketplace add HaydenSmith1121/agent-workspace-protocol; codex plugin add agent-workspace-protocol@agent-workspace-protocol
+```
+
+This installs the skill only. After installing a plugin, restart Codex or open
+a new session so the skill is discovered. Then initialize a target workspace
+by asking the agent to use the skill, or use the one-line workspace command
+above.
+
+### Manual Installation
+
 Install the reusable Codex skill only:
 
 ```powershell
@@ -72,6 +110,8 @@ Use `--language zh-CN` for the Simplified Chinese workspace templates.
 
 ### macOS or Linux
 
+Install the skill from a checkout:
+
 ```sh
 git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
 cd agent-workspace-protocol
@@ -83,6 +123,13 @@ cd agent-workspace-protocol
 The default installation scope is `agent`, the default runtime is Codex, and
 the default language is English. Existing files are refused unless `--force`
 is supplied. Use `--backup` when replacing an existing skill.
+
+### One Command Does Not Mean One Location
+
+The reusable skill belongs to the agent and can serve many projects. The
+workspace files belong to one project and may be committed with it. A one-line
+command can perform both installations, but it cannot merge those two
+lifecycles into one shared directory.
 
 ### Let an Agent Install It
 

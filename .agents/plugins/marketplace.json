@@ -1,0 +1,21 @@
+{
+  "name": "agent-workspace-protocol",
+  "interface": {
+    "displayName": "Agent Workspace Protocol"
+  },
+  "plugins": [
+    {
+      "name": "agent-workspace-protocol",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/HaydenSmith1121/agent-workspace-protocol.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

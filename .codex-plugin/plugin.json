@@ -1,0 +1,28 @@
+{
+  "name": "agent-workspace-protocol",
+  "version": "0.1.0",
+  "description": "Bootstrap and maintain cross-agent workspaces with explicit rules, memory, inputs, outputs, code, and history boundaries.",
+  "author": {
+    "name": "HaydenSmith1121",
+    "url": "https://github.com/HaydenSmith1121"
+  },
+  "homepage": "https://github.com/HaydenSmith1121/agent-workspace-protocol",
+  "repository": "https://github.com/HaydenSmith1121/agent-workspace-protocol",
+  "license": "MIT",
+  "keywords": [
+    "workspace",
+    "memory",
+    "context-engineering",
+    "multi-agent",
+    "codex"
+  ],
+  "skills": "./skill/",
+  "interface": {
+    "displayName": "Agent Workspace Protocol",
+    "shortDescription": "Make AI workspaces legible, safe, and reusable",
+    "longDescription": "Initialize, audit, or migrate a workspace so agents can distinguish rules, inputs, outputs, code, memory, current state, decisions, and history.",
+    "developerName": "HaydenSmith1121",
+    "category": "Productivity",
+    "websiteURL": "https://github.com/HaydenSmith1121/agent-workspace-protocol"
+  }
+}

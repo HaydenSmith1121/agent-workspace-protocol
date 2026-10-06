@@ -46,6 +46,41 @@ Agent 层 skill 教智能体如何初始化、审计和维护工作区。工作�
 
 ### Windows PowerShell
 
+一条命令安装可复用的 Codex skill：
+
+```powershell
+irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1 | iex
+```
+
+脚本会把仓库下载到临时目录，并把 skill 安装到用户级 Codex skill 目录。该命令不会
+初始化任何工作区。
+
+一条命令同时安装 skill 并初始化工作区：
+
+```powershell
+$s=irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1; & ([scriptblock]::Create($s)) --workspace "C:\path\to\workspace" --agents all --language zh-CN
+```
+
+这是一个安装流程，但目标仍是两个：
+
+- 可复用 skill 安装在 agent 层；
+- 指定工作区获得 `AGENTS.md`、适配器和 `MEMORY/`。
+
+它不会创建 Git 仓库，也不会发布任何内容。
+
+### Codex 插件市场
+
+Codex 也可以通过插件系统安装这个可复用 skill：
+
+```powershell
+codex plugin marketplace add HaydenSmith1121/agent-workspace-protocol; codex plugin add agent-workspace-protocol@agent-workspace-protocol
+```
+
+这里只安装 skill。安装插件后需要重启 Codex 或打开新会话，让 Codex 重新发现 skill。
+之后可以让智能体使用这个 skill 初始化目标工作区，或者使用上面的一行式工作区命令。
+
+### 手动安装
+
 只安装用户级 Codex skill：
 
 ```powershell
@@ -63,6 +98,8 @@ cd agent-workspace-protocol
 
 ### macOS 或 Linux
 
+从本地检出安装：
+
 ```sh
 git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
 cd agent-workspace-protocol
@@ -73,6 +110,11 @@ cd agent-workspace-protocol
 
 默认安装范围是 `agent`，默认运行环境是 Codex，默认模板语言是英文。默认不会覆盖
 已有文件；需要替换时必须显式使用 `--force`，建议同时使用 `--backup`。
+
+### 一条命令不等于一个安装位置
+
+可复用 skill 属于 agent，可以服务多个项目。工作区文件属于某一个项目，并可能随该项
+目提交。一行命令可以依次完成两种安装，但不能把两种生命周期合并到同一个共享目录。
 
 ### 交给智能体安装
 
