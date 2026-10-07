@@ -80,7 +80,9 @@ Adjust the parts that matter for your case:
 - runtime: Codex, Claude Code, or a custom skill root (`--runtime`, `--skill-root`);
 - adapters: `--agents codex,claude,cursor,gemini,copilot` or `--agents all`;
 - language: `--language en` or `--language zh-CN`;
-- existing project files: add `--skip-existing`, so a local `AGENTS.md` or `README.md` stays untouched and only missing files are added.
+- existing project files: no extra flag is needed; local `AGENTS.md` or
+  `README.md` files stay untouched and only missing files are added. Add
+  `--force --backup` only when you explicitly want to replace them.
 
 If you only want the reusable skill and no workspace files, the whole request
 is one line:
@@ -94,9 +96,9 @@ Codex skill. Do not initialize any workspace.
 The agent should clone the repository and run the included `install.ps1` or
 `install.sh`. It should not invent a package-manager installation command,
 because this skill is distributed as a repository rather than a published
-package. Ask for `--dry-run` first: the installer never replaces an existing
-file by accident, and the dry run lists what it would create, skip, or
-overwrite.
+package. Ask for `--dry-run` first: the installer refreshes its own agent-level
+skill in place, skips existing workspace files by default, and the dry run
+lists what it would create, update, skip, or overwrite.
 
 ### 2. Manual Installation
 
@@ -124,13 +126,9 @@ This is one installation workflow with two targets:
 - the selected workspace receives `AGENTS.md`, adapters, and `MEMORY/`.
 
 It does not create a Git repository or publish anything. If the workspace
-already has its own `AGENTS.md` or `README.md`, the installer stops instead of
-replacing it. Add `--skip-existing` to keep those local files and create only
-the missing ones:
-
-```powershell
-$s=irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1; & ([scriptblock]::Create($s)) --workspace "C:\path\to\workspace" --agents all --language zh-CN --skip-existing
-```
+already has its own `AGENTS.md` or `README.md`, those files are skipped by
+default while missing files are added. Use `--force --backup` only when you
+want the installer to replace them.
 
 #### macOS or Linux
 
@@ -174,8 +172,8 @@ The default behavior is:
 1. Install the reusable skill into the user-level Codex skill directory.
 2. If `--workspace` is supplied, initialize workspace entry files and a
    `MEMORY/` skeleton.
-3. Refuse to overwrite existing files unless `--force` or `--skip-existing` is
-   supplied.
+3. Refresh the agent-level skill in place, and skip existing workspace files
+   unless `--force` is supplied.
 4. Use English templates unless `--language zh-CN` is supplied.
 
 Useful options:
@@ -190,9 +188,8 @@ Useful options:
 --no-skill                Bootstrap the workspace only
 --no-workspace            Install the skill only
 --dry-run                 Print actions without writing
---skip-existing           Keep existing conflicting files and add the rest
---force                   Overwrite conflicts
---backup                  Back up conflicting files before overwrite
+--force                   Overwrite existing workspace files
+--backup                  Back up the previous agent skill and overwritten files
 ```
 
 Examples:
@@ -205,7 +202,7 @@ Examples:
 ./install.sh --scope project --workspace . --agents codex
 
 # Adopt the protocol in a project that already has its own AGENTS.md
-./install.sh --workspace . --agents all --language zh-CN --skip-existing
+./install.sh --workspace . --agents all --language zh-CN
 
 # Audit or bootstrap manually
 python skill/agent-workspace-protocol/scripts/bootstrap_workspace.py \

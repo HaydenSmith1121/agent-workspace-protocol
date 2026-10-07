@@ -62,7 +62,7 @@ class BootstrapTests(unittest.TestCase):
             for relative in expected:
                 self.assertTrue((workspace / relative).is_file(), relative)
 
-    def test_conflict_is_refused(self) -> None:
+    def test_existing_files_are_skipped_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             first = run_script(
                 BOOTSTRAP,
@@ -74,6 +74,7 @@ class BootstrapTests(unittest.TestCase):
             self.assertEqual(first.returncode, 0, first.stderr)
 
             (Path(temp) / "AGENTS.md").write_text("local change\n", encoding="utf-8")
+            (Path(temp) / "MEMORY" / "05-state" / "current.md").unlink()
             second = run_script(
                 BOOTSTRAP,
                 "--workspace",
@@ -81,14 +82,18 @@ class BootstrapTests(unittest.TestCase):
                 "--agents",
                 "codex",
             )
-            self.assertEqual(second.returncode, 2)
-            self.assertIn("refusing to overwrite", second.stderr)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertIn("SKIP", second.stdout)
+            self.assertIn("Left 1 existing file(s) untouched", second.stdout)
             self.assertEqual(
                 (Path(temp) / "AGENTS.md").read_text(encoding="utf-8"),
                 "local change\n",
             )
+            self.assertTrue(
+                (Path(temp) / "MEMORY" / "05-state" / "current.md").is_file()
+            )
 
-    def test_skip_existing_keeps_local_files_and_adds_the_rest(self) -> None:
+    def test_force_with_backup_replaces_and_keeps_a_copy(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             workspace = Path(temp)
             (workspace / "AGENTS.md").write_text("local change\n", encoding="utf-8")
@@ -98,35 +103,16 @@ class BootstrapTests(unittest.TestCase):
                 "--workspace",
                 temp,
                 "--agents",
-                "all",
-                "--language",
-                "zh-CN",
-                "--skip-existing",
+                "codex",
+                "--force",
+                "--backup",
             )
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn("SKIP", result.stdout)
-            self.assertEqual(
-                (workspace / "AGENTS.md").read_text(encoding="utf-8"),
-                "local change\n",
-            )
-            self.assertTrue((workspace / "CLAUDE.md").is_file())
-            self.assertTrue(
-                (
-                    workspace / "MEMORY" / "01-rules" / "workspace-protocol.md"
-                ).is_file()
-            )
-
-    def test_force_and_skip_existing_are_rejected_together(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            result = run_script(
-                BOOTSTRAP,
-                "--workspace",
-                temp,
-                "--force",
-                "--skip-existing",
-            )
-            self.assertEqual(result.returncode, 2)
-            self.assertIn("cannot be combined", result.stderr)
+            agents = (workspace / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertNotEqual(agents, "local change\n")
+            backups = list(workspace.glob("AGENTS.md.bak-*"))
+            self.assertEqual(len(backups), 1)
+            self.assertEqual(backups[0].read_text(encoding="utf-8"), "local change\n")
 
     def test_bootstrap_chinese_templates(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -148,8 +134,58 @@ class BootstrapTests(unittest.TestCase):
             self.assertIn("# 智能体工作区协议", protocol)
             self.assertIn("本文件只是导航地图", agents)
 
+    def test_adopting_an_existing_workspace_adds_only_missing_files(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp)
+            (workspace / "AGENTS.md").write_text("local change\n", encoding="utf-8")
+
+            result = run_script(
+                BOOTSTRAP,
+                "--workspace",
+                temp,
+                "--agents",
+                "all",
+                "--language",
+                "zh-CN",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(
+                (workspace / "AGENTS.md").read_text(encoding="utf-8"),
+                "local change\n",
+            )
+            self.assertTrue((workspace / "CLAUDE.md").is_file())
+            self.assertTrue(
+                (
+                    workspace / "MEMORY" / "01-rules" / "workspace-protocol.md"
+                ).is_file()
+            )
+
 
 class InstallerTests(unittest.TestCase):
+    def test_existing_skill_is_refreshed_in_place(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            skill_root = Path(temp) / "skills"
+            installed = skill_root / "agent-workspace-protocol"
+            installed.mkdir(parents=True)
+            (installed / "SKILL.md").write_text("old skill\n", encoding="utf-8")
+
+            result = run_script(
+                INSTALLER,
+                "--scope",
+                "agent",
+                "--runtime",
+                "custom",
+                "--skill-root",
+                str(skill_root),
+                "--no-workspace",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("UPDATE", result.stdout)
+            self.assertNotEqual(
+                (installed / "SKILL.md").read_text(encoding="utf-8"),
+                "old skill\n",
+            )
+
     def test_install_skill_to_explicit_root(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             skill_root = Path(temp) / "skills"

@@ -116,7 +116,6 @@ def build_plan(
     language: str,
     force: bool,
     backup: bool,
-    skip_existing: bool = False,
 ) -> list[PlannedFile]:
     try:
         language_layout = LANGUAGE_LAYOUTS[language]
@@ -140,7 +139,6 @@ def build_plan(
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     plan: list[PlannedFile] = []
-    conflicts: list[Path] = []
 
     for source, relative in mappings:
         if not source.is_file():
@@ -157,11 +155,8 @@ def build_plan(
                 action = "unchanged"
             elif force:
                 action = "overwrite"
-            elif skip_existing:
-                action = "skip"
             else:
-                action = "conflict"
-                conflicts.append(target)
+                action = "skip"
         else:
             action = "create"
 
@@ -178,20 +173,11 @@ def build_plan(
             )
         )
 
-    if conflicts and not force:
-        joined = "\n".join(f"  - {path}" for path in conflicts)
-        raise FileExistsError(
-            "refusing to overwrite existing files; use --skip-existing to keep "
-            "them, or --force and optionally --backup to replace them:\n"
-            f"{joined}"
-        )
     return plan
 
 
 def apply_plan(plan: list[PlannedFile], dry_run: bool) -> None:
     for item in plan:
-        if item.action == "conflict":
-            continue
         if item.action == "skip":
             print(f"{'SKIP':9} {item.target} (exists; --force replaces it)")
             continue
@@ -215,7 +201,6 @@ def bootstrap(
     dry_run: bool = False,
     force: bool = False,
     backup: bool = False,
-    skip_existing: bool = False,
 ) -> int:
     workspace = workspace.expanduser().resolve()
     if workspace.exists() and not workspace.is_dir():
@@ -234,9 +219,14 @@ def bootstrap(
         language=language,
         force=force,
         backup=backup,
-        skip_existing=skip_existing,
     )
     apply_plan(plan, dry_run=dry_run)
+    skipped = sum(1 for item in plan if item.action == "skip")
+    if skipped and not dry_run:
+        print(
+            f"\nLeft {skipped} existing file(s) untouched. "
+            "Re-run with --force --backup to replace them."
+        )
 
     if dry_run:
         print("\nDry run complete. No files were written.")
@@ -267,16 +257,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Workspace template language: en or zh-CN.",
     )
     parser.add_argument("--dry-run", action="store_true", help="Plan without writing.")
-    parser.add_argument("--force", action="store_true", help="Overwrite conflicts.")
+    parser.add_argument(
+        "--force", action="store_true", help="Overwrite existing workspace files."
+    )
     parser.add_argument(
         "--backup",
         action="store_true",
         help="Back up overwritten files before replacing them.",
-    )
-    parser.add_argument(
-        "--skip-existing",
-        action="store_true",
-        help="Leave existing conflicting files untouched and add the rest.",
     )
     return parser
 
@@ -284,8 +271,6 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    if args.force and args.skip_existing:
-        parser.error("--force and --skip-existing cannot be combined")
     try:
         agents = parse_agents(args.agents)
         return bootstrap(
@@ -295,7 +280,6 @@ def main(argv: list[str] | None = None) -> int:
             dry_run=args.dry_run,
             force=args.force,
             backup=args.backup,
-            skip_existing=args.skip_existing,
         )
     except (FileExistsError, FileNotFoundError, NotADirectoryError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)

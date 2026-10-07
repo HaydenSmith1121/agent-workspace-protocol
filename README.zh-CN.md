@@ -70,8 +70,8 @@ https://github.com/HaydenSmith1121/agent-workspace-protocol
 - 运行环境：Codex、Claude Code，或自定义 skill 根目录（`--runtime`、`--skill-root`）；
 - 适配器：`--agents codex,claude,cursor,gemini,copilot` 或 `--agents all`；
 - 模板语言：`--language en` 或 `--language zh-CN`；
-- 工作区已有文件：加上 `--skip-existing`，已有的 `AGENTS.md`、`README.md` 保持
-  原样，只补齐缺失文件。
+- 工作区已有文件：无需额外参数，已有的 `AGENTS.md`、`README.md` 保持原样，只补齐
+  缺失文件。只有明确要替换它们时才加 `--force --backup`。
 
 如果只要可复用 skill、不初始化任何工作区，整段请求可以缩成一句：
 
@@ -82,8 +82,8 @@ agent-workspace-protocol 安装为用户级 Codex skill，不要初始化任何�
 
 智能体应当克隆仓库，然后运行仓库内的 `install.ps1` 或 `install.sh`。这个项目不是
 已经发布到包管理器的安装包，因此不要自行编造 `npm install`、`pip install` 之类
-不存在的安装命令。让它先跑 `--dry-run`：安装器不会意外替换已有文件，dry run 会
-列出将要创建、跳过和覆盖的文件。
+不存在的安装命令。让它先跑 `--dry-run`：安装器会原位刷新自己的 agent 层 skill，
+默认跳过工作区已有文件，dry run 会列出将要创建、更新、跳过和覆盖的文件。
 
 ### 二、手动安装
 
@@ -110,12 +110,8 @@ $s=irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protoco
 - 指定工作区获得 `AGENTS.md`、适配器和 `MEMORY/`。
 
 它不会创建 Git 仓库，也不会发布任何内容。如果工作区已经有自己的 `AGENTS.md` 或
-`README.md`，安装器会停止，而不是替换它们。加上 `--skip-existing` 即可保留这些
-本地文件，只创建缺失的文件：
-
-```powershell
-$s=irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1; & ([scriptblock]::Create($s)) --workspace "C:\path\to\workspace" --agents all --language zh-CN --skip-existing
-```
+`README.md`，这些文件默认会被跳过，同时补齐缺失文件。只有明确要替换它们时才使用
+`--force --backup`。
 
 #### macOS 或 Linux
 
@@ -156,7 +152,7 @@ codex plugin marketplace add HaydenSmith1121/agent-workspace-protocol; codex plu
 
 1. 将可复用 skill 安装到用户级 Codex skill 目录。
 2. 如果提供 `--workspace`，初始化工作区入口文件和 `MEMORY/` 骨架。
-3. 默认拒绝覆盖已有文件，除非提供 `--force` 或 `--skip-existing`。
+3. 原位刷新 agent 层 skill；工作区已有文件默认跳过，除非提供 `--force`。
 4. 默认语言是 `en`，中文模板使用 `--language zh-CN`。
 
 常用参数：
@@ -171,9 +167,8 @@ codex plugin marketplace add HaydenSmith1121/agent-workspace-protocol; codex plu
 --no-skill                只初始化工作区
 --no-workspace            只安装 skill
 --dry-run                 只打印计划，不写文件
---skip-existing           保留冲突的已有文件，只补齐其余文件
---force                   覆盖冲突文件
---backup                  覆盖前备份
+--force                   覆盖工作区已有文件
+--backup                  备份旧的 agent skill 和即将覆盖的文件
 ```
 
 示例：
@@ -186,7 +181,7 @@ codex plugin marketplace add HaydenSmith1121/agent-workspace-protocol; codex plu
 ./install.sh --scope project --workspace . --agents codex --language zh-CN
 
 # 给已有 AGENTS.md 的项目补上协议文件
-./install.sh --workspace . --agents all --language zh-CN --skip-existing
+./install.sh --workspace . --agents all --language zh-CN
 
 # 只检查工作区初始化结果
 python skill/agent-workspace-protocol/scripts/bootstrap_workspace.py \

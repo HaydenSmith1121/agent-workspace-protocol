@@ -98,13 +98,13 @@ For a team:
 Most real projects already have an `AGENTS.md` or `README.md`, and the
 installer never replaces one by accident:
 
-- `--skip-existing` adds only the missing files and leaves local files alone;
+- the default adds only the missing files and leaves local files alone;
 - `--force --backup` replaces a conflicting file, and the backup is yours to
   merge afterwards.
 
-Prefer `--skip-existing` and merge manually. A generated `AGENTS.md` replaces
-the project rules you already wrote, while a skipped one only means a human
-still has to point it at the canonical protocol.
+Prefer the default skip behavior and merge manually. A generated `AGENTS.md`
+replaces the project rules you already wrote, while a skipped one only means a
+human still has to point it at the canonical protocol.
 
 ## `CLAUDE.md` Is Not the Protocol
 

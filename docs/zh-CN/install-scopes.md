@@ -80,11 +80,11 @@ python skill/agent-workspace-protocol/scripts/install.py \
 
 真实项目通常已经有自己的 `AGENTS.md` 或 `README.md`，安装器不会意外替换它们：
 
-- `--skip-existing` 只补齐缺失文件，已有文件保持原样；
+- 默认只补齐缺失文件，已有文件保持原样；
 - `--force --backup` 才会替换冲突文件，备份由你自己合并。
 
-优先使用 `--skip-existing` 再手工合并。被替换的 `AGENTS.md` 会覆盖你已经写好的
-项目规则；而被跳过的文件只需要补一句指向规则正本的入口说明。
+优先使用默认的跳过行为，再手工合并。被替换的 `AGENTS.md` 会覆盖你已经写好的项目
+规则；而被跳过的文件只需要补一句指向规则正本的入口说明。
 
 ## `CLAUDE.md` 不是协议正本
 

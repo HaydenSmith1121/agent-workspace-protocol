@@ -67,10 +67,11 @@ python scripts/bootstrap_workspace.py --workspace /path/to/workspace \
 
 For a Simplified Chinese workspace, add `--language zh-CN`.
 
-The script refuses conflicts by default. `--force` overwrites; add `--backup`
-to preserve conflicting files. Use `--skip-existing` when adopting the
-protocol in a workspace that already has its own `AGENTS.md` or `README.md`;
-it adds only the missing files and leaves local files untouched. The script
+Existing workspace files are skipped by default, so adopting the protocol in a
+workspace that already has its own `AGENTS.md` or `README.md` adds only the
+missing files. Use `--force --backup` only when you explicitly want to replace
+those files. The agent-level skill is refreshed in place because it is the
+installer's own artifact; pass `--backup` to keep the previous copy. The script
 never writes outside the target workspace.
 
 Afterward:
