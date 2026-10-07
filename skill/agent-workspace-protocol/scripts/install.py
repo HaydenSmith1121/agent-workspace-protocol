@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install the reusable skill and optionally bootstrap a workspace."""
+"""Install the reusable skill and initialize a workspace."""
 
 from __future__ import annotations
 
@@ -127,8 +127,9 @@ def install_skill(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Install agent-workspace-protocol. Agent scope installs a reusable "
-            "skill; workspace scope installs project entry files and memory."
+            "Install agent-workspace-protocol and initialize a workspace. "
+            "Agent scope installs the reusable skill; workspace scope installs "
+            "project entry files and memory."
         )
     )
     parser.add_argument(
@@ -144,7 +145,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Known runtime or a custom root.",
     )
     parser.add_argument("--skill-root", help="Explicit skill root directory.")
-    parser.add_argument("--workspace", help="Workspace to bootstrap.")
+    parser.add_argument(
+        "--workspace", required=True, help="Workspace to initialize."
+    )
     parser.add_argument(
         "--agents",
         default="all",
@@ -165,16 +168,6 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Back up files or skill trees before overwrite.",
     )
-    parser.add_argument(
-        "--no-skill",
-        action="store_true",
-        help="Do not install the reusable skill.",
-    )
-    parser.add_argument(
-        "--no-workspace",
-        action="store_true",
-        help="Do not bootstrap workspace entry files.",
-    )
     return parser
 
 
@@ -182,43 +175,30 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    workspace = Path(args.workspace).expanduser().resolve() if args.workspace else None
-    do_workspace = bool(workspace) and not args.no_workspace
-    do_skill = not args.no_skill
-
-    if not do_workspace and not do_skill:
-        parser.error("nothing to do: both --no-skill and --no-workspace were supplied")
-    if args.scope == "project" and workspace is None:
-        parser.error("--workspace is required with --scope project")
-    if not do_workspace and args.workspace is None and args.no_workspace:
-        pass
+    workspace = Path(args.workspace).expanduser().resolve()
 
     try:
         agents = parse_agents(args.agents)
-        if do_skill:
-            root = resolve_skill_root(
-                scope=args.scope,
-                runtime=args.runtime,
-                workspace=workspace,
-                explicit=args.skill_root,
-            )
-            install_skill(
-                source=skill_source(),
-                root=root,
-                dry_run=args.dry_run,
-                backup=args.backup,
-            )
-
-        if do_workspace:
-            assert workspace is not None
-            bootstrap(
-                workspace=workspace,
-                agents=agents,
-                language=args.language,
-                dry_run=args.dry_run,
-                force=args.force,
-                backup=args.backup,
-            )
+        root = resolve_skill_root(
+            scope=args.scope,
+            runtime=args.runtime,
+            workspace=workspace,
+            explicit=args.skill_root,
+        )
+        install_skill(
+            source=skill_source(),
+            root=root,
+            dry_run=args.dry_run,
+            backup=args.backup,
+        )
+        bootstrap(
+            workspace=workspace,
+            agents=agents,
+            language=args.language,
+            dry_run=args.dry_run,
+            force=args.force,
+            backup=args.backup,
+        )
     except (FileExistsError, FileNotFoundError, NotADirectoryError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -227,16 +207,14 @@ def main(argv: list[str] | None = None) -> int:
         print("\nDry run complete. No files were written.")
     else:
         print("\nInstallation complete.")
-        if do_skill:
-            print(
-                "Skill discovery may require a new agent session or a reload of "
-                "the runtime."
-            )
-        if do_workspace:
-            print(
-                "Review MEMORY/01-rules/workspace-protocol.md before committing "
-                "the workspace changes."
-            )
+        print(
+            "Skill discovery may require a new agent session or a reload of "
+            "the runtime."
+        )
+        print(
+            "Review MEMORY/01-rules/workspace-protocol.md before committing "
+            "the workspace changes."
+        )
     return 0
 
 

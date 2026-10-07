@@ -47,6 +47,23 @@ def markdown_files() -> list[Path]:
 
 
 class DocumentationLinkTests(unittest.TestCase):
+    def test_installation_docs_do_not_offer_skill_only_commands(self) -> None:
+        documents = [
+            REPO_ROOT / "README.md",
+            REPO_ROOT / "README.zh-CN.md",
+            REPO_ROOT / "docs" / "install-scopes.md",
+            REPO_ROOT / "docs" / "zh-CN" / "install-scopes.md",
+        ]
+        forbidden = ("--no-workspace", "--no-skill", "| iex")
+        for document in documents:
+            text = document.read_text(encoding="utf-8")
+            for marker in forbidden:
+                self.assertNotIn(
+                    marker,
+                    text,
+                    f"{document.relative_to(REPO_ROOT)} contains {marker}",
+                )
+
     def test_language_template_trees_match(self) -> None:
         english = {
             path.relative_to(TEMPLATE_ROOT).as_posix()

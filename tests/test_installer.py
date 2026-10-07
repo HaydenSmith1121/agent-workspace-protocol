@@ -165,6 +165,7 @@ class InstallerTests(unittest.TestCase):
     def test_existing_skill_is_refreshed_in_place(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             skill_root = Path(temp) / "skills"
+            workspace = Path(temp) / "workspace"
             installed = skill_root / "agent-workspace-protocol"
             installed.mkdir(parents=True)
             (installed / "SKILL.md").write_text("old skill\n", encoding="utf-8")
@@ -177,7 +178,8 @@ class InstallerTests(unittest.TestCase):
                 "custom",
                 "--skill-root",
                 str(skill_root),
-                "--no-workspace",
+                "--workspace",
+                str(workspace),
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("UPDATE", result.stdout)
@@ -185,8 +187,34 @@ class InstallerTests(unittest.TestCase):
                 (installed / "SKILL.md").read_text(encoding="utf-8"),
                 "old skill\n",
             )
+            self.assertTrue((workspace / "AGENTS.md").is_file())
 
-    def test_install_skill_to_explicit_root(self) -> None:
+    def test_install_skill_and_workspace_to_explicit_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            skill_root = Path(temp) / "skills"
+            workspace = Path(temp) / "workspace"
+            result = run_script(
+                INSTALLER,
+                "--scope",
+                "agent",
+                "--runtime",
+                "custom",
+                "--skill-root",
+                str(skill_root),
+                "--workspace",
+                str(workspace),
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(
+                (
+                    skill_root
+                    / "agent-workspace-protocol"
+                    / "SKILL.md"
+                ).is_file()
+            )
+            self.assertTrue((workspace / "AGENTS.md").is_file())
+
+    def test_workspace_is_required(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             skill_root = Path(temp) / "skills"
             result = run_script(
@@ -197,16 +225,9 @@ class InstallerTests(unittest.TestCase):
                 "custom",
                 "--skill-root",
                 str(skill_root),
-                "--no-workspace",
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue(
-                (
-                    skill_root
-                    / "agent-workspace-protocol"
-                    / "SKILL.md"
-                ).is_file()
-            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("required", result.stderr)
 
     def test_install_and_bootstrap(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

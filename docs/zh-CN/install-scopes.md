@@ -4,9 +4,12 @@
 
 如果只记住一条规则：可复用 skill 安装在 agent 层，工作区特定规则和记忆安装在工作区层。
 
-最省事的做法是交给智能体：把 [安装](../../README.zh-CN.md#安装) 里的提示词粘贴到
+最省事的做法是交给智能体：把 [安装](../../README.zh-CN.md#安装从这里开始) 里的提示词粘贴到
 智能体会话中，它会克隆仓库、先跑 dry run，再初始化工作区。本页其余部分说明两类
 范围各自包含什么，手动安装或复核结果时需要这些信息。
+
+仓库安装器始终在一次运行中同时完成两类范围。必须提供 `--workspace`，不支持只安装
+skill 的路径。
 
 ## Agent 层
 
@@ -49,26 +52,29 @@ Agent 层文件属于设备或用户配置，不是项目记忆，也不应提�
 - skill 包含可复用说明；
 - 工作区记忆包含当前项目的事实和决策。
 
-安装器同时支持两种：
+安装器会在同一次运行中完成所选 skill 范围，并初始化工作区：
 
 ```sh
-# 用户或设备级 skill
+# 用户或设备级 skill，并初始化当前工作区
 python skill/agent-workspace-protocol/scripts/install.py \
-  --scope agent --runtime codex
+  --scope agent --runtime codex --workspace .
 
-# 项目内 skill
+# 项目内 skill，并初始化当前工作区
 python skill/agent-workspace-protocol/scripts/install.py \
   --scope project --workspace .
+
+# 用户或设备级 skill，并初始化简体中文工作区
+python skill/agent-workspace-protocol/scripts/install.py \
+  --scope agent --runtime codex --workspace . --language zh-CN
 ```
 
 ## 推荐默认方案
 
 个人用户：
 
-1. 在 agent 层安装一次 skill。
-2. 每个需要约定的项目运行一次工作区 bootstrap。
-3. 项目规则和记忆跟随仓库提交。
-4. 提交前审查生成的入口文件。
+1. 每个需要约定的项目运行一次安装器；它会刷新 agent 层 skill 并初始化该工作区。
+2. 项目规则和记忆跟随仓库提交。
+3. 提交前审查生成的入口文件。
 
 团队：
 

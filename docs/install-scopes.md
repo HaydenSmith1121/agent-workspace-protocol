@@ -7,10 +7,13 @@ If you remember one rule: install the reusable skill at agent scope, and put
 the workspace-specific rules and memory at workspace scope.
 
 The fastest path is to let an agent do it: paste the prompt from
-[Installation](../README.md#installation) into an agent session, and it will
-clone the repository, run a dry run, and initialize the workspace. The rest of
-this page explains what each scope contains, which matters when you install by
-hand or review the result.
+[Installation](../README.md#installation-start-here) into an agent session, and
+it will clone the repository, run a dry run, and initialize the workspace. The
+rest of this page explains what each scope contains, which matters when you
+install by hand or review the result.
+
+The repository installer always performs both scopes in one run. `--workspace`
+is required; there is no supported skill-only installation path.
 
 ## Agent Scope
 
@@ -61,30 +64,31 @@ It is still not the same as workspace memory:
 - the skill contains reusable instructions;
 - workspace memory contains facts and decisions about this project.
 
-The installer supports both:
+The installer performs the selected skill scope and initializes the workspace
+in the same run:
 
 ```sh
-# User/device skill
+# User/device skill plus this workspace
 python skill/agent-workspace-protocol/scripts/install.py \
-  --scope agent --runtime codex
+  --scope agent --runtime codex --workspace .
 
-# Project-local skill
+# Project-local skill plus this workspace
 python skill/agent-workspace-protocol/scripts/install.py \
   --scope project --workspace .
 
-# Bootstrap a Simplified Chinese workspace
+# User/device skill plus a Simplified Chinese workspace
 python skill/agent-workspace-protocol/scripts/install.py \
-  --workspace . --language zh-CN
+  --scope agent --runtime codex --workspace . --language zh-CN
 ```
 
 ## Recommended Default
 
 For an individual user:
 
-1. Install the skill once at agent scope.
-2. Run the workspace bootstrap in each project that needs the convention.
-3. Keep project rules and memory in the repository.
-4. Review generated entry files before committing them.
+1. Run the installer in each project that needs the convention; it refreshes
+   the agent-level skill and initializes that workspace.
+2. Keep project rules and memory in the repository.
+3. Review generated entry files before committing them.
 
 For a team:
 

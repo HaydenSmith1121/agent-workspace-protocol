@@ -54,6 +54,9 @@ global skill.
 When explaining installation, lead with the agent-driven prompt published in
 the repository README, and offer the manual commands second.
 
+The repository installer performs both scopes in one run. `--workspace` is
+required; do not present a skill-only installation command.
+
 ## Bootstrap
 
 Run:
