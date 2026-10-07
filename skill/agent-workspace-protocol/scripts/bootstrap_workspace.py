@@ -116,6 +116,7 @@ def build_plan(
     language: str,
     force: bool,
     backup: bool,
+    skip_existing: bool = False,
 ) -> list[PlannedFile]:
     try:
         language_layout = LANGUAGE_LAYOUTS[language]
@@ -154,11 +155,13 @@ def build_plan(
         if target.exists():
             if target.is_file() and target.read_bytes() == content:
                 action = "unchanged"
-            elif not force:
+            elif force:
+                action = "overwrite"
+            elif skip_existing:
+                action = "skip"
+            else:
                 action = "conflict"
                 conflicts.append(target)
-            else:
-                action = "overwrite"
         else:
             action = "create"
 
@@ -178,23 +181,25 @@ def build_plan(
     if conflicts and not force:
         joined = "\n".join(f"  - {path}" for path in conflicts)
         raise FileExistsError(
-            "refusing to overwrite existing files; use --force and optionally "
-            f"--backup:\n{joined}"
+            "refusing to overwrite existing files; use --skip-existing to keep "
+            "them, or --force and optionally --backup to replace them:\n"
+            f"{joined}"
         )
     return plan
 
 
 def apply_plan(plan: list[PlannedFile], dry_run: bool) -> None:
-    if dry_run:
-        for item in plan:
-            if item.action == "conflict":
-                continue
-            suffix = f" (backup: {item.backup})" if item.backup else ""
-            print(f"{item.action.upper():9} {item.target}{suffix}")
-        return
-
     for item in plan:
-        if item.action == "unchanged":
+        if item.action == "conflict":
+            continue
+        if item.action == "skip":
+            print(f"{'SKIP':9} {item.target} (exists; --force replaces it)")
+            continue
+        if item.action == "unchanged" and not dry_run:
+            continue
+        suffix = f" (backup: {item.backup})" if item.backup else ""
+        if dry_run:
+            print(f"{item.action.upper():9} {item.target}{suffix}")
             continue
         item.target.parent.mkdir(parents=True, exist_ok=True)
         if item.backup is not None:
@@ -210,6 +215,7 @@ def bootstrap(
     dry_run: bool = False,
     force: bool = False,
     backup: bool = False,
+    skip_existing: bool = False,
 ) -> int:
     workspace = workspace.expanduser().resolve()
     if workspace.exists() and not workspace.is_dir():
@@ -228,6 +234,7 @@ def bootstrap(
         language=language,
         force=force,
         backup=backup,
+        skip_existing=skip_existing,
     )
     apply_plan(plan, dry_run=dry_run)
 
@@ -266,12 +273,19 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Back up overwritten files before replacing them.",
     )
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Leave existing conflicting files untouched and add the rest.",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.force and args.skip_existing:
+        parser.error("--force and --skip-existing cannot be combined")
     try:
         agents = parse_agents(args.agents)
         return bootstrap(
@@ -281,6 +295,7 @@ def main(argv: list[str] | None = None) -> int:
             dry_run=args.dry_run,
             force=args.force,
             backup=args.backup,
+            skip_existing=args.skip_existing,
         )
     except (FileExistsError, FileNotFoundError, NotADirectoryError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)

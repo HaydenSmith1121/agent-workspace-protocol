@@ -51,6 +51,9 @@ Keep these separate:
 Never put project credentials, project history, or project decisions in the
 global skill.
 
+When explaining installation, lead with the agent-driven prompt published in
+the repository README, and offer the manual commands second.
+
 ## Bootstrap
 
 Run:
@@ -65,7 +68,10 @@ python scripts/bootstrap_workspace.py --workspace /path/to/workspace \
 For a Simplified Chinese workspace, add `--language zh-CN`.
 
 The script refuses conflicts by default. `--force` overwrites; add `--backup`
-to preserve conflicting files. It never writes outside the target workspace.
+to preserve conflicting files. Use `--skip-existing` when adopting the
+protocol in a workspace that already has its own `AGENTS.md` or `README.md`;
+it adds only the missing files and leaves local files untouched. The script
+never writes outside the target workspace.
 
 Afterward:
 

@@ -42,11 +42,54 @@ Agent 层 skill 教智能体如何初始化、审计和维护工作区。工作�
 
 ## 安装
 
-安装器位于仓库中，所以需要先把公开仓库下载到本机。安装需要 Python 3 和 Git。
+有两条受支持的路径，选一条即可：
 
-### Windows PowerShell
+| 路径 | 谁执行 | 适合场景 |
+| --- | --- | --- |
+| 交给 AI 安装 | 能执行命令的智能体会话 | 你只想给一句指令，让它先检查工作区再初始化。推荐。 |
+| 手动安装 | 你在终端里执行 | 你想自己逐条执行命令，或智能体无法克隆仓库、运行脚本。 |
 
-一条命令安装可复用的 Codex skill：
+两条路径都需要 Python 3 和 Git。安装器在仓库内部，所以仓库必须先到本机；交给 AI
+安装时由它自己下载。
+
+### 一、交给 AI 安装（推荐）
+
+把下面这段发给能执行命令的智能体会话，替换其中的占位符：
+
+```text
+请从下面这个公开仓库安装 agent-workspace-protocol skill：
+https://github.com/HaydenSmith1121/agent-workspace-protocol
+
+安装到用户级 Codex skill 目录。然后使用全部智能体适配器和简体中文模板，初始化
+<工作区绝对路径>。先运行 --dry-run 并展示计划，确认结果无误后再正式执行。
+```
+
+按自己的情况调整这几项：
+
+- `<工作区绝对路径>`：需要获得 `AGENTS.md`、适配器和 `MEMORY/` 的项目；
+- 运行环境：Codex、Claude Code，或自定义 skill 根目录（`--runtime`、`--skill-root`）；
+- 适配器：`--agents codex,claude,cursor,gemini,copilot` 或 `--agents all`；
+- 模板语言：`--language en` 或 `--language zh-CN`；
+- 工作区已有文件：加上 `--skip-existing`，已有的 `AGENTS.md`、`README.md` 保持
+  原样，只补齐缺失文件。
+
+如果只要可复用 skill、不初始化任何工作区，整段请求可以缩成一句：
+
+```text
+请从 https://github.com/HaydenSmith1121/agent-workspace-protocol 把
+agent-workspace-protocol 安装为用户级 Codex skill，不要初始化任何工作区。
+```
+
+智能体应当克隆仓库，然后运行仓库内的 `install.ps1` 或 `install.sh`。这个项目不是
+已经发布到包管理器的安装包，因此不要自行编造 `npm install`、`pip install` 之类
+不存在的安装命令。让它先跑 `--dry-run`：安装器不会意外替换已有文件，dry run 会
+列出将要创建、跳过和覆盖的文件。
+
+### 二、手动安装
+
+#### Windows PowerShell
+
+一条命令安装可复用的 Codex skill，无需克隆仓库：
 
 ```powershell
 irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1 | iex
@@ -66,9 +109,37 @@ $s=irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protoco
 - 可复用 skill 安装在 agent 层；
 - 指定工作区获得 `AGENTS.md`、适配器和 `MEMORY/`。
 
-它不会创建 Git 仓库，也不会发布任何内容。
+它不会创建 Git 仓库，也不会发布任何内容。如果工作区已经有自己的 `AGENTS.md` 或
+`README.md`，安装器会停止，而不是替换它们。加上 `--skip-existing` 即可保留这些
+本地文件，只创建缺失的文件：
 
-### Codex 插件市场
+```powershell
+$s=irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1; & ([scriptblock]::Create($s)) --workspace "C:\path\to\workspace" --agents all --language zh-CN --skip-existing
+```
+
+#### macOS 或 Linux
+
+```sh
+git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
+cd agent-workspace-protocol
+./install.sh --no-workspace --dry-run
+./install.sh --no-workspace
+./install.sh --workspace /path/to/workspace --agents all --language zh-CN
+```
+
+#### 从本地检出安装
+
+`install.ps1` 和 `install.sh` 接受同一套参数，本地检出后两者都可以用：
+
+```powershell
+git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
+cd agent-workspace-protocol
+.\install.ps1 --dry-run
+.\install.ps1 --no-workspace
+.\install.ps1 --workspace C:\path\to\workspace --agents all --language zh-CN
+```
+
+#### Codex 插件市场
 
 Codex 也可以通过插件系统安装这个可复用 skill：
 
@@ -79,86 +150,13 @@ codex plugin marketplace add HaydenSmith1121/agent-workspace-protocol; codex plu
 这里只安装 skill。安装插件后需要重启 Codex 或打开新会话，让 Codex 重新发现 skill。
 之后可以让智能体使用这个 skill 初始化目标工作区，或者使用上面的一行式工作区命令。
 
-### 手动安装
-
-只安装用户级 Codex skill：
-
-```powershell
-git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
-cd agent-workspace-protocol
-.\install.ps1 --no-workspace --dry-run
-.\install.ps1 --no-workspace
-```
-
-安装 Codex skill，并初始化一个工作区：
-
-```powershell
-.\install.ps1 --workspace C:\path\to\workspace --agents all --language zh-CN
-```
-
-### macOS 或 Linux
-
-从本地检出安装：
-
-```sh
-git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
-cd agent-workspace-protocol
-./install.sh --no-workspace --dry-run
-./install.sh --no-workspace
-./install.sh --workspace /path/to/workspace --agents all --language zh-CN
-```
-
-默认安装范围是 `agent`，默认运行环境是 Codex，默认模板语言是英文。默认不会覆盖
-已有文件；需要替换时必须显式使用 `--force`，建议同时使用 `--backup`。
-
-### 一条命令不等于一个安装位置
-
-可复用 skill 属于 agent，可以服务多个项目。工作区文件属于某一个项目，并可能随该项
-目提交。一行命令可以依次完成两种安装，但不能把两种生命周期合并到同一个共享目录。
-
-### 交给智能体安装
-
-可以直接告诉智能体从公开仓库安装，这是受支持的流程。最好同时说明运行环境、安装
-范围和是否需要初始化工作区，例如：
-
-```text
-请从下面这个公开仓库安装 agent-workspace-protocol skill：
-https://github.com/HaydenSmith1121/agent-workspace-protocol
-
-安装到用户级 Codex skill 目录。然后使用全部智能体适配器和简体中文模板，初始化
-<工作区绝对路径>。先运行 --dry-run 并展示计划，确认结果无误后再正式执行。
-```
-
-智能体应当克隆仓库，然后运行仓库内的 `install.ps1` 或 `install.sh`。这个项目不是
-已经发布到包管理器的安装包，因此不要自行编造 `npm install`、`pip install` 之类
-不存在的安装命令。
-
-## 快速开始
-
-预览 Codex 用户级 skill 安装：
-
-```powershell
-.\install.ps1 --dry-run
-```
-
-安装 Codex skill，并初始化一个中文工作区：
-
-```powershell
-.\install.ps1 --workspace C:\path\to\workspace --language zh-CN
-```
-
-macOS 或 Linux：
-
-```sh
-./install.sh --dry-run
-./install.sh --workspace /path/to/workspace --language zh-CN
-```
+#### 默认行为和参数
 
 默认行为：
 
 1. 将可复用 skill 安装到用户级 Codex skill 目录。
 2. 如果提供 `--workspace`，初始化工作区入口文件和 `MEMORY/` 骨架。
-3. 默认拒绝覆盖已有文件，除非提供 `--force`。
+3. 默认拒绝覆盖已有文件，除非提供 `--force` 或 `--skip-existing`。
 4. 默认语言是 `en`，中文模板使用 `--language zh-CN`。
 
 常用参数：
@@ -173,6 +171,7 @@ macOS 或 Linux：
 --no-skill                只初始化工作区
 --no-workspace            只安装 skill
 --dry-run                 只打印计划，不写文件
+--skip-existing           保留冲突的已有文件，只补齐其余文件
 --force                   覆盖冲突文件
 --backup                  覆盖前备份
 ```
@@ -186,10 +185,18 @@ macOS 或 Linux：
 # 安装到项目内 .agents/skills，并只创建 Codex 适配器
 ./install.sh --scope project --workspace . --agents codex --language zh-CN
 
+# 给已有 AGENTS.md 的项目补上协议文件
+./install.sh --workspace . --agents all --language zh-CN --skip-existing
+
 # 只检查工作区初始化结果
 python skill/agent-workspace-protocol/scripts/bootstrap_workspace.py \
   --workspace . --agents all --language zh-CN --dry-run
 ```
+
+### 一条命令不等于一个安装位置
+
+可复用 skill 属于 agent，可以服务多个项目。工作区文件属于某一个项目，并可能随该项
+目提交。一行命令可以依次完成两种安装，但不能把两种生命周期合并到同一个共享目录。
 
 ## 默认工作区结构
 

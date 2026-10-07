@@ -6,6 +6,12 @@ source of confusion.
 If you remember one rule: install the reusable skill at agent scope, and put
 the workspace-specific rules and memory at workspace scope.
 
+The fastest path is to let an agent do it: paste the prompt from
+[Installation](../README.md#installation) into an agent session, and it will
+clone the repository, run a dry run, and initialize the workspace. The rest of
+this page explains what each scope contains, which matters when you install by
+hand or review the result.
+
 ## Agent Scope
 
 Agent scope installs the reusable skill into an agent runtime's skill
@@ -86,6 +92,19 @@ For a team:
    project scope.
 2. Commit the workspace adapters and canonical protocol.
 3. Add a CI check for links, secrets, and obvious root-level clutter.
+
+## Existing Workspace
+
+Most real projects already have an `AGENTS.md` or `README.md`, and the
+installer never replaces one by accident:
+
+- `--skip-existing` adds only the missing files and leaves local files alone;
+- `--force --backup` replaces a conflicting file, and the backup is yours to
+  merge afterwards.
+
+Prefer `--skip-existing` and merge manually. A generated `AGENTS.md` replaces
+the project rules you already wrote, while a skipped one only means a human
+still has to point it at the canonical protocol.
 
 ## `CLAUDE.md` Is Not the Protocol
 

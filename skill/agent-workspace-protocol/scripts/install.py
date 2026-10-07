@@ -71,6 +71,7 @@ def install_skill(
     dry_run: bool,
     force: bool,
     backup: bool,
+    skip_existing: bool = False,
 ) -> None:
     destination = (root / SKILL_NAME).resolve()
     plan = planned_skill_files(source, destination)
@@ -87,19 +88,24 @@ def install_skill(
             or target.read_bytes() != source_file.read_bytes()
         )
     ]
+    conflict_set = set(conflicts)
 
-    if conflicts and not force:
+    if conflicts and not force and not skip_existing:
         joined = "\n".join(f"  - {path}" for path in conflicts)
         raise FileExistsError(
-            "refusing to overwrite an existing skill; use --force and optionally "
-            f"--backup:\n{joined}"
+            "refusing to overwrite an existing skill; use --skip-existing to keep "
+            "it, or --force and optionally --backup to replace it:\n"
+            f"{joined}"
         )
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     if dry_run:
         print(f"PLAN      skill destination: {destination}")
         for _, target in plan:
-            action = "OVERWRITE" if target.exists() else "CREATE"
+            if target in conflict_set and not force:
+                action = "SKIP"
+            else:
+                action = "OVERWRITE" if target.exists() else "CREATE"
             print(f"{action:9} {target}")
         return
 
@@ -113,6 +119,9 @@ def install_skill(
         print(f"BACKUP    {destination} -> {backup_root}")
 
     for source_file, target in plan:
+        if target in conflict_set and not force:
+            print(f"SKIP      {target} (differs from the packaged skill)")
+            continue
         existed = target.exists()
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source_file, target)
@@ -160,6 +169,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Back up files or skill trees before overwrite.",
     )
     parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Keep existing conflicting files or skills and install the rest.",
+    )
+    parser.add_argument(
         "--no-skill",
         action="store_true",
         help="Do not install the reusable skill.",
@@ -175,6 +189,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.force and args.skip_existing:
+        parser.error("--force and --skip-existing cannot be combined")
 
     workspace = Path(args.workspace).expanduser().resolve() if args.workspace else None
     do_workspace = bool(workspace) and not args.no_workspace
@@ -202,6 +218,7 @@ def main(argv: list[str] | None = None) -> int:
                 dry_run=args.dry_run,
                 force=args.force,
                 backup=args.backup,
+                skip_existing=args.skip_existing,
             )
 
         if do_workspace:
@@ -213,6 +230,7 @@ def main(argv: list[str] | None = None) -> int:
                 dry_run=args.dry_run,
                 force=args.force,
                 backup=args.backup,
+                skip_existing=args.skip_existing,
             )
     except (FileExistsError, FileNotFoundError, NotADirectoryError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)

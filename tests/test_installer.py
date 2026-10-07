@@ -88,6 +88,46 @@ class BootstrapTests(unittest.TestCase):
                 "local change\n",
             )
 
+    def test_skip_existing_keeps_local_files_and_adds_the_rest(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp)
+            (workspace / "AGENTS.md").write_text("local change\n", encoding="utf-8")
+
+            result = run_script(
+                BOOTSTRAP,
+                "--workspace",
+                temp,
+                "--agents",
+                "all",
+                "--language",
+                "zh-CN",
+                "--skip-existing",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("SKIP", result.stdout)
+            self.assertEqual(
+                (workspace / "AGENTS.md").read_text(encoding="utf-8"),
+                "local change\n",
+            )
+            self.assertTrue((workspace / "CLAUDE.md").is_file())
+            self.assertTrue(
+                (
+                    workspace / "MEMORY" / "01-rules" / "workspace-protocol.md"
+                ).is_file()
+            )
+
+    def test_force_and_skip_existing_are_rejected_together(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            result = run_script(
+                BOOTSTRAP,
+                "--workspace",
+                temp,
+                "--force",
+                "--skip-existing",
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("cannot be combined", result.stderr)
+
     def test_bootstrap_chinese_templates(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             workspace = Path(temp) / "sample"

@@ -48,12 +48,61 @@ For a fuller explanation, see [docs/install-scopes.md](docs/install-scopes.md).
 
 ## Installation
 
-The repository must be present on the machine before its installer can run.
-Python 3 and Git are required.
+There are two supported paths. Pick one:
 
-### Windows PowerShell
+| Path | Who runs it | Use it when |
+| --- | --- | --- |
+| Let an agent install it | An AI agent session | You want the workspace inspected and initialized from one instruction. This is the recommended path. |
+| Manual installation | You, in a terminal | You want to run every command yourself, or the agent cannot clone and run scripts. |
 
-Install the reusable Codex skill with one command:
+Both paths need Python 3 and Git. The installer lives inside this repository,
+so the repository has to reach the machine first. The agent path downloads it
+for you.
+
+### 1. Let an Agent Install It (Recommended)
+
+Paste this into an agent session that can run shell commands, and replace the
+placeholder:
+
+```text
+Install the agent-workspace-protocol skill from this public repository:
+https://github.com/HaydenSmith1121/agent-workspace-protocol
+
+Install it as a user-level Codex skill. Then initialize the workspace at
+<ABSOLUTE_WORKSPACE_PATH> with all agent adapters and the Simplified Chinese
+templates. Run the installer with --dry-run first, show me the planned changes,
+and only continue after the dry run is valid.
+```
+
+Adjust the parts that matter for your case:
+
+- `<ABSOLUTE_WORKSPACE_PATH>`: the project that should receive `AGENTS.md`, adapters, and `MEMORY/`;
+- runtime: Codex, Claude Code, or a custom skill root (`--runtime`, `--skill-root`);
+- adapters: `--agents codex,claude,cursor,gemini,copilot` or `--agents all`;
+- language: `--language en` or `--language zh-CN`;
+- existing project files: add `--skip-existing`, so a local `AGENTS.md` or `README.md` stays untouched and only missing files are added.
+
+If you only want the reusable skill and no workspace files, the whole request
+is one line:
+
+```text
+Install the agent-workspace-protocol skill from
+https://github.com/HaydenSmith1121/agent-workspace-protocol as a user-level
+Codex skill. Do not initialize any workspace.
+```
+
+The agent should clone the repository and run the included `install.ps1` or
+`install.sh`. It should not invent a package-manager installation command,
+because this skill is distributed as a repository rather than a published
+package. Ask for `--dry-run` first: the installer never replaces an existing
+file by accident, and the dry run lists what it would create, skip, or
+overwrite.
+
+### 2. Manual Installation
+
+#### Windows PowerShell
+
+Install the reusable Codex skill with one command, without cloning anything:
 
 ```powershell
 irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1 | iex
@@ -74,43 +123,16 @@ This is one installation workflow with two targets:
 - the reusable skill is installed at the agent level;
 - the selected workspace receives `AGENTS.md`, adapters, and `MEMORY/`.
 
-It does not create a Git repository or publish anything.
-
-### Codex Plugin Marketplace
-
-Codex can also install the reusable skill through its plugin system:
-
-```powershell
-codex plugin marketplace add HaydenSmith1121/agent-workspace-protocol; codex plugin add agent-workspace-protocol@agent-workspace-protocol
-```
-
-This installs the skill only. After installing a plugin, restart Codex or open
-a new session so the skill is discovered. Then initialize a target workspace
-by asking the agent to use the skill, or use the one-line workspace command
-above.
-
-### Manual Installation
-
-Install the reusable Codex skill only:
+It does not create a Git repository or publish anything. If the workspace
+already has its own `AGENTS.md` or `README.md`, the installer stops instead of
+replacing it. Add `--skip-existing` to keep those local files and create only
+the missing ones:
 
 ```powershell
-git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
-cd agent-workspace-protocol
-.\install.ps1 --no-workspace --dry-run
-.\install.ps1 --no-workspace
+$s=irm https://raw.githubusercontent.com/HaydenSmith1121/agent-workspace-protocol/main/install.ps1; & ([scriptblock]::Create($s)) --workspace "C:\path\to\workspace" --agents all --language zh-CN --skip-existing
 ```
 
-Install the Codex skill and initialize a workspace:
-
-```powershell
-.\install.ps1 --workspace C:\path\to\workspace --agents all --language en
-```
-
-Use `--language zh-CN` for the Simplified Chinese workspace templates.
-
-### macOS or Linux
-
-Install the skill from a checkout:
+#### macOS or Linux
 
 ```sh
 git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
@@ -120,72 +142,41 @@ cd agent-workspace-protocol
 ./install.sh --workspace /path/to/workspace --agents all --language en
 ```
 
-The default installation scope is `agent`, the default runtime is Codex, and
-the default language is English. Existing files are refused unless `--force`
-is supplied. Use `--backup` when replacing an existing skill.
+#### From a Git Checkout
 
-### One Command Does Not Mean One Location
-
-The reusable skill belongs to the agent and can serve many projects. The
-workspace files belong to one project and may be committed with it. A one-line
-command can perform both installations, but it cannot merge those two
-lifecycles into one shared directory.
-
-### Let an Agent Install It
-
-Yes, telling an agent to install the repository is a supported workflow. Give
-it the public URL, the desired runtime, the installation scope, and whether it
-should initialize a workspace:
-
-```text
-Install the agent-workspace-protocol skill from this public repository:
-https://github.com/HaydenSmith1121/agent-workspace-protocol
-
-Install it as a user-level Codex skill. Then initialize the workspace at
-<ABSOLUTE_WORKSPACE_PATH> with all agent adapters and the Simplified Chinese
-templates. Run the installer with --dry-run first, show me the planned changes,
-and only continue after the dry run is valid.
-```
-
-The agent should clone the repository and run the included `install.ps1` or
-`install.sh`. It should not invent a package-manager installation command,
-because this skill is distributed as a repository rather than a published
-package.
-
-## Quick Start
-
-Preview a user-level Codex skill installation:
+`install.ps1` and `install.sh` accept the same arguments, so a checkout can run
+either of them:
 
 ```powershell
+git clone https://github.com/HaydenSmith1121/agent-workspace-protocol.git
+cd agent-workspace-protocol
 .\install.ps1 --dry-run
+.\install.ps1 --no-workspace
+.\install.ps1 --workspace C:\path\to\workspace --agents all --language zh-CN
 ```
 
-Install the Codex skill and bootstrap a new workspace:
+#### Codex Plugin Marketplace
+
+Codex can also install the reusable skill through its plugin system:
 
 ```powershell
-.\install.ps1 --workspace C:\path\to\workspace
+codex plugin marketplace add HaydenSmith1121/agent-workspace-protocol; codex plugin add agent-workspace-protocol@agent-workspace-protocol
 ```
 
-Create a Simplified Chinese workspace:
+This installs the skill only. After installing a plugin, restart Codex or open
+a new session so the skill is discovered. Then initialize a target workspace
+by asking the agent to use the skill, or use the workspace command above.
 
-```powershell
-.\install.ps1 --workspace C:\path\to\workspace --language zh-CN
-```
-
-On macOS or Linux:
-
-```sh
-./install.sh --dry-run
-./install.sh --workspace /path/to/workspace
-./install.sh --workspace /path/to/workspace --language zh-CN
-```
+#### Defaults and Options
 
 The default behavior is:
 
 1. Install the reusable skill into the user-level Codex skill directory.
 2. If `--workspace` is supplied, initialize workspace entry files and a
    `MEMORY/` skeleton.
-3. Refuse to overwrite existing files unless `--force` is supplied.
+3. Refuse to overwrite existing files unless `--force` or `--skip-existing` is
+   supplied.
+4. Use English templates unless `--language zh-CN` is supplied.
 
 Useful options:
 
@@ -199,6 +190,7 @@ Useful options:
 --no-skill                Bootstrap the workspace only
 --no-workspace            Install the skill only
 --dry-run                 Print actions without writing
+--skip-existing           Keep existing conflicting files and add the rest
 --force                   Overwrite conflicts
 --backup                  Back up conflicting files before overwrite
 ```
@@ -212,10 +204,20 @@ Examples:
 # Install at project scope under .agents/skills and create only Codex adapters
 ./install.sh --scope project --workspace . --agents codex
 
+# Adopt the protocol in a project that already has its own AGENTS.md
+./install.sh --workspace . --agents all --language zh-CN --skip-existing
+
 # Audit or bootstrap manually
 python skill/agent-workspace-protocol/scripts/bootstrap_workspace.py \
   --workspace . --agents all --dry-run
 ```
+
+### One Command Does Not Mean One Location
+
+The reusable skill belongs to the agent and can serve many projects. The
+workspace files belong to one project and may be committed with it. A one-line
+command can perform both installations, but it cannot merge those two
+lifecycles into one shared directory.
 
 ## Default Workspace Shape
 
